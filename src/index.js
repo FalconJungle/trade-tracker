@@ -1,7 +1,6 @@
-// Main entry point for the trade tracker application
-console.log('Trade Tracker initialized');
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
-// Export default function
-export default function main() {
-  console.log('Main function executed');
-}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<React.StrictMode><App /></React.StrictMode>);
