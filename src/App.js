@@ -1,29 +1,13 @@
-const { useState, useMemo, useCallback, useRef, useEffect } = React;
-const { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, getDay, parseISO } = dateFns;
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, getDay, parseISO } from 'date-fns';
+import { ChevronLeft, ChevronRight, Upload, PlusCircle, X, Loader, Rocket, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
-// --- Icon Components (since we can't import directly) ---
-const Icon = ({ name, size = 24, className = '' }) => {
-  const icons = {
-    ChevronLeft: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M15.75 19.5L8.25 12l7.5-7.5' }),
-    ChevronRight: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M8.25 4.5l7.5 7.5-7.5 7.5' }),
-    Upload: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5' }),
-    PlusCircle: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z' }),
-    X: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M6 18L18 6M6 6l12 12' }),
-    Loader: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 012.25-2.25h.008a2.25 2.25 0 012.25 2.25v.008a2.25 2.25 0 01-2.25 2.25H16.5' }),
-    Rocket: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M15.59 14.37a6 6 0 01-5.84 7.38v-4.82m5.84-2.56a12.025 12.025 0 01-4.132 4.132m4.132-4.132L21 12m-5.41-2.63a6 6 0 00-7.38-5.84m2.56 5.84A12.025 12.025 0 003 12m2.63 5.41a6 6 0 017.38 5.84m-2.56-5.84A12.025 12.025 0 0121 12m-5.41 2.63l4.132-4.132m-4.132 4.132a6 6 0 01-5.84-7.38m5.84 2.56L12 3' }),
-    Trash2: React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', d: 'M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.134H8.09a2.09 2.09 0 00-2.09 2.134v.916m7.5 0a48.667 48.667 0 00-7.5 0' }),
-  };
-  return React.createElement('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', strokeWidth: 1.5, stroke: 'currentColor', className: className, width: size, height: size }, icons[name]);
-};
+// --- Firebase Imports ---
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { getFirestore, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 
-// --- Framer Motion Stub (since we can't import it) ---
-const motion = { div: React.forwardRef((props, ref) => React.createElement('div', { ref, ...props })) };
-const AnimatePresence = ({ children }) => React.createElement(React.Fragment, null, children);
-
-// --- Firebase SDK is loaded from index.html ---
-const { initializeApp } = firebase;
-const { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } = firebase.auth;
-const { getFirestore, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy } = firebase.firestore;
 
 // --- Helper Functions ---
 const classNames = (...classes) => classes.filter(Boolean).join(' ');
@@ -231,7 +215,7 @@ const CalculatorPage = ({ trades, onClose, startingCapital }) => {
             <div className="flex justify-between items-center flex-shrink-0">
                 <h2 className="text-xl font-semibold">Investment Projection</h2>
                 <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors">
-                    <Icon name="X" size={20} />
+                    <X size={20} />
                 </button>
             </div>
             <div className="flex-grow mt-6 overflow-y-auto">
@@ -281,10 +265,10 @@ const CalendarHeader = ({ currentMonth, prevMonth, nextMonth }) => (
     <div className="flex items-center justify-between px-1 pb-2">
         <h2 className="flex-auto text-lg font-semibold text-text-primary">{format(currentMonth, 'MMMM yyyy')}</h2>
         <button onClick={prevMonth} type="button" className="p-1.5 text-text-secondary hover:text-accent-blue transition-colors rounded-full hover:bg-white/10 button-hover-effect">
-            <Icon name="ChevronLeft" className="h-5 w-5" aria-hidden="true" />
+            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         </button>
         <button onClick={nextMonth} type="button" className="p-1.5 text-text-secondary hover:text-accent-blue transition-colors rounded-full hover:bg-white/10 button-hover-effect">
-            <Icon name="ChevronRight" className="h-5 w-5" aria-hidden="true" />
+            <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </button>
     </div>
 );
@@ -366,7 +350,7 @@ const SummaryViewModal = ({ selectedDate, trades, onClose, onDeleteTrade }) => {
              <div className="bg-glass rounded-xl w-full max-w-md flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between p-4 border-b border-glass-edge flex-shrink-0">
                     <h3 className="text-lg font-semibold text-text-primary">Summary for <span className="text-accent-blue ml-1">{format(selectedDate, 'MMMM d, yyyy')}</span></h3>
-                    <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><Icon name="X" size={20} /></button>
+                    <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-6 pt-4 overflow-y-auto">
                     <div className="flex justify-between items-baseline mb-4">
@@ -385,7 +369,7 @@ const SummaryViewModal = ({ selectedDate, trades, onClose, onDeleteTrade }) => {
                                         <div className="flex items-center gap-2">
                                             <span className={classNames(trade.changeValue >= 0 ? 'text-accent-gain' : 'text-accent-loss')}>${trade.changeValue.toFixed(2)}</span>
                                             <button onClick={() => onDeleteTrade(trade.id)} className="p-1 text-red-500 hover:text-red-400 rounded-full hover:bg-white/10 transition-colors">
-                                                <Icon name="Trash2" size={16} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </div>
@@ -451,12 +435,12 @@ const AddTradeModal = ({ onAddTrade, setShowModal }) => {
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setShowModal(false)}>
             <div className="bg-glass p-8 rounded-2xl w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
-                 <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><Icon name="X" size={20} /></button>
+                 <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><X size={20} /></button>
                 <h2 className="text-xl font-semibold text-text-primary mb-6">Log New Trade or Summary</h2>
                 <div className="space-y-4">
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/jpeg, image/png" multiple />
                     <button onClick={() => fileInputRef.current.click()} disabled={loading} className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-glass-edge rounded-lg text-text-secondary hover:border-accent-blue hover:text-accent-blue transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        {loading ? <Icon name="Loader" className="animate-spin h-8 w-8" /> : <> <Icon name="Upload" className="h-8 w-8" /> <span className="mt-2 text-sm font-medium">Click to upload image(s)</span> </>}
+                        {loading ? <Loader className="animate-spin h-8 w-8" /> : <> <Upload className="h-8 w-8" /> <span className="mt-2 text-sm font-medium">Click to upload image(s)</span> </>}
                     </button>
                     {loading && <p className="text-center text-sm text-accent-blue animate-pulse">Analyzing Image...</p>}
                     {error && <p className="text-center text-sm text-accent-loss">{error}</p>}
@@ -509,7 +493,7 @@ const PnlHistoryModal = ({ trades, startingCapital, onClose, onDeleteTrade }) =>
             <div className="bg-glass rounded-xl w-full max-w-md flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between p-4 border-b border-glass-edge flex-shrink-0">
                     <h3 className="text-lg font-semibold text-text-primary">Account History</h3>
-                    <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><Icon name="X" size={20} /></button>
+                    <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-6 pt-4 overflow-y-auto max-h-[60vh]">
                     {history.length > 0 ? (
@@ -530,7 +514,7 @@ const PnlHistoryModal = ({ trades, startingCapital, onClose, onDeleteTrade }) =>
                                             </p>
                                         </div>
                                         <button onClick={() => onDeleteTrade(item.id)} className="p-1 text-red-500 hover:text-red-400 rounded-full hover:bg-white/10 transition-colors">
-                                            <Icon name="Trash2" size={16} />
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </li>
@@ -573,7 +557,7 @@ const WinRateModal = ({ trades, onClose }) => {
             <div className="bg-glass rounded-xl w-full max-w-md flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between p-4 border-b border-glass-edge flex-shrink-0">
                     <h3 className="text-lg font-semibold text-text-primary">Win Rate Calculation</h3>
-                    <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><Icon name="X" size={20} /></button>
+                    <button onClick={onClose} className="p-1 rounded-full text-text-secondary hover:bg-white/10 transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-6 pt-4 overflow-y-auto max-h-[60vh]">
                     <div className="p-4 bg-white/5 rounded-lg mb-4 text-center">
