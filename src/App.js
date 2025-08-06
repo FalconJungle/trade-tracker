@@ -592,7 +592,7 @@ const WinRateModal = ({ trades, onClose }) => {
 
 
 // --- Main App Component ---
-function App() {
+export default function App() {
     const [trades, setTrades] = useState([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(null);
@@ -613,7 +613,7 @@ function App() {
     // --- Firebase Initialization ---
     useEffect(() => {
         try {
-            const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+            const firebaseConfigStr = process.env.REACT_APP_FIREBASE_CONFIG;
             if (firebaseConfigStr && firebaseConfigStr.startsWith('{')) {
                 const firebaseConfig = JSON.parse(firebaseConfigStr);
                 const app = initializeApp(firebaseConfig);
@@ -624,24 +624,13 @@ function App() {
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         setUserId(user.uid);
+                    } else {
+                        signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
                     }
                 });
-
-                const signIn = async () => {
-                    const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                    try {
-                        if (authToken) {
-                            await signInWithCustomToken(auth, authToken);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    } catch (error) {
-                        console.error("Firebase sign-in failed:", error);
-                    }
-                };
-                signIn();
             } else {
                 setIsLoading(false);
+                 console.error("Firebase config not found or invalid.");
             }
         } catch (error) {
             console.error("Error initializing Firebase:", error);
@@ -653,7 +642,7 @@ function App() {
     useEffect(() => {
         if (db && userId) {
             setIsLoading(true);
-            const tradesCollectionRef = collection(db, 'artifacts', window.__app_id || 'default-app-id', 'public', 'data', 'trades');
+            const tradesCollectionRef = collection(db, 'artifacts', 'trade-tracker-app', 'public', 'data', 'trades');
             const q = query(tradesCollectionRef, orderBy("date"));
 
             const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -672,7 +661,7 @@ function App() {
 
     const handleAddTrade = async (newEvents) => {
         if (!db || !userId) return;
-        const tradesCollectionRef = collection(db, 'artifacts', window.__app_id || 'default-app-id', 'public', 'data', 'trades');
+        const tradesCollectionRef = collection(db, 'artifacts', 'trade-tracker-app', 'public', 'data', 'trades');
         
         for (const event of newEvents) {
             await addDoc(tradesCollectionRef, event);
@@ -687,7 +676,7 @@ function App() {
     
     const handleDeleteTrade = async (tradeId) => {
         if (!db || !userId) return;
-        const tradeDocRef = doc(db, 'artifacts', window.__app_id || 'default-app-id', 'public', 'data', 'trades', tradeId);
+        const tradeDocRef = doc(db, 'artifacts', 'trade-tracker-app', 'public', 'data', 'trades', tradeId);
         await deleteDoc(tradeDocRef);
     };
    
@@ -760,7 +749,7 @@ function App() {
     if (isLoading) {
         return (
             <div className="bg-background text-text-primary min-h-screen w-full flex items-center justify-center">
-                <Icon name="Loader" className="animate-spin h-12 w-12 text-accent-blue" />
+                <Loader className="animate-spin h-12 w-12 text-accent-blue" />
             </div>
         )
     }
@@ -830,7 +819,7 @@ function App() {
                                 className="flex items-center justify-center w-10 h-10 bg-accent-blue text-white rounded-full
                                              transition-all duration-200 hover:shadow-lg hover:shadow-accent-blue/30 button-hover-effect"
                                 >
-                                <Icon name="PlusCircle" size={20} />
+                                <PlusCircle size={20} />
                                 </button>
                                 <button
                                 onClick={() => { playSound('rocket'); setShowCalculator(true); }}
@@ -838,7 +827,7 @@ function App() {
                                 className="rocket-btn flex items-center justify-center w-10 h-10 rounded-full
                                              transition-all duration-200 hover:shadow-lg button-hover-effect"
                                 >
-                                <Icon name="Rocket" size={18} />
+                                <Rocket size={18} />
                                 </button>
                             </div>
                         </div>
@@ -873,3 +862,5 @@ function App() {
         </React.Fragment>
     );
 }
+
+export default App;
