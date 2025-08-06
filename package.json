@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@babel/standalone": "^7.24.7",
     "date-fns": "^2.30.0",
     "firebase": "^9.6.1",
     "framer-motion": "^6.5.1",
