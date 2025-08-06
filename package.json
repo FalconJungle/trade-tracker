@@ -3,15 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/standalone": "^7.24.7",
+    "date-fns": "^2.30.0",
+    "firebase": "^9.6.1",
+    "framer-motion": "^6.5.1",
+    "lucide-react": "^0.395.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "build": "react-scripts build"
   },
   "browserslist": {
     "production": [
